@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
+const isWindows = process.platform === "win32";
+
 const nextConfig: NextConfig = {
-  distDir: ".next-app",
+  ...(isWindows ? { distDir: ".next-app" } : {}),
   typedRoutes: true
 };
 
