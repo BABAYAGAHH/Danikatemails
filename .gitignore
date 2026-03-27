@@ -1,0 +1,12 @@
+.next
+.next-app
+node_modules
+.turbo
+.vercel
+coverage
+dist
+*.log
+.npm-cache
+.env
+.env.local
+prisma/dev.db

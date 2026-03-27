@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 35 38% 98%;
+  --foreground: 216 34% 13%;
+  --card: 0 0% 100%;
+  --card-foreground: 216 34% 13%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 216 34% 13%;
+  --primary: 164 61% 28%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 156 22% 92%;
+  --secondary-foreground: 216 34% 13%;
+  --muted: 156 15% 94%;
+  --muted-foreground: 215 15% 38%;
+  --accent: 194 66% 92%;
+  --accent-foreground: 216 34% 13%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 160 17% 84%;
+  --input: 160 17% 84%;
+  --ring: 164 61% 28%;
+  --radius: 1rem;
+}
+
+.dark {
+  --background: 219 42% 9%;
+  --foreground: 200 21% 96%;
+  --card: 221 35% 13%;
+  --card-foreground: 200 21% 96%;
+  --popover: 221 35% 13%;
+  --popover-foreground: 200 21% 96%;
+  --primary: 166 47% 54%;
+  --primary-foreground: 220 43% 10%;
+  --secondary: 220 22% 18%;
+  --secondary-foreground: 200 21% 96%;
+  --muted: 220 20% 16%;
+  --muted-foreground: 214 18% 70%;
+  --accent: 201 43% 20%;
+  --accent-foreground: 200 21% 96%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 18% 22%;
+  --input: 220 18% 22%;
+  --ring: 166 47% 54%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(circle at top left, rgba(209, 250, 229, 0.72), transparent 32%),
+      radial-gradient(circle at top right, rgba(191, 219, 254, 0.45), transparent 26%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(250, 252, 255, 0.98));
+    min-height: 100vh;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(circle at top left, rgba(45, 212, 191, 0.12), transparent 28%),
+      radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 20%),
+      linear-gradient(180deg, rgba(10, 18, 32, 0.98), rgba(8, 12, 24, 1));
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-3xl border border-white/70 bg-white/80 shadow-panel backdrop-blur dark:border-white/10 dark:bg-slate-950/70;
+  }
+
+  .metric-card {
+    @apply panel p-5;
+  }
+
+  .table-surface {
+    @apply panel overflow-hidden;
+  }
+}

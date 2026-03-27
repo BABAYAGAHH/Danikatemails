@@ -1,0 +1,87 @@
+import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/page-header";
+import { StatusBadge } from "@/components/status-badge";
+import { ContactService } from "@/features/contacts/contact-service";
+import { resolveWorkspaceMembership } from "@/lib/auth/workspace";
+import { formatRelative } from "@/lib/utils/format";
+
+export default async function ContactDetailPage({
+  params
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { workspace } = await resolveWorkspaceMembership();
+  const { id } = await params;
+  const contact = await ContactService.getById(workspace.id, id);
+
+  if (!contact) {
+    notFound();
+  }
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Contact Profile"
+        title={contact.fullName || contact.email}
+        description={contact.company ? `${contact.company.name} • ${contact.jobTitle ?? "Business contact"}` : contact.email}
+      />
+
+      <div className="grid gap-6 lg:grid-cols-[0.36fr_0.64fr]">
+        <div className="panel p-6">
+          <h2 className="text-lg font-semibold">Profile</h2>
+          <dl className="mt-5 space-y-4 text-sm">
+            <div>
+              <dt className="text-muted-foreground">Email</dt>
+              <dd className="mt-1 font-medium">{contact.email}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Region profile</dt>
+              <dd className="mt-1">
+                <StatusBadge value={contact.regionProfile} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Lawful basis</dt>
+              <dd className="mt-1">
+                <StatusBadge value={contact.lawfulBasis} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Outreach status</dt>
+              <dd className="mt-1">
+                <StatusBadge value={contact.outreachStatus} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">Last contacted</dt>
+              <dd className="mt-1">{formatRelative(contact.lastContactedAt)}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div className="panel p-6">
+          <h2 className="text-lg font-semibold">Activity timeline</h2>
+          <div className="mt-5 space-y-3">
+            {contact.emailEvents.length ? (
+              contact.emailEvents.map((event) => (
+                <div className="rounded-2xl border border-border/70 px-4 py-3" key={event.id}>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-medium">{event.eventType.replace(/_/g, " ").toLowerCase()}</div>
+                    <div className="text-xs text-muted-foreground">{formatRelative(event.occurredAt)}</div>
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    {event.providerEventId ?? "No provider event id"}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border/80 px-4 py-8 text-sm text-muted-foreground">
+                No email activity recorded yet.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

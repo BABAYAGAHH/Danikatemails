@@ -1,0 +1,456 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MARKETER
+  VIEWER
+}
+
+enum LawfulBasis {
+  CONSENT
+  LEGITIMATE_INTEREST
+  EXISTING_CUSTOMER
+  NOT_SET
+}
+
+enum ConsentStatus {
+  GRANTED
+  DENIED
+  UNKNOWN
+  OBJECTED
+}
+
+enum OutreachStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  SUPPRESSED
+  BOUNCED_HARD
+  COMPLAINED
+  INVALID
+}
+
+enum RegionProfile {
+  US
+  UK
+  EU
+  OTHER
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  RUNNING
+  PAUSED
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum ContactType {
+  GENERIC_INBOX
+  ROLE_INBOX
+  NAMED_BUSINESS_CONTACT
+}
+
+enum SourceType {
+  CSV_IMPORT
+  MANUAL
+  PUBLIC_WEBSITE
+  REFERRAL
+  API
+}
+
+enum TemplateStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum EmailEventType {
+  QUEUED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED_SOFT
+  BOUNCED_HARD
+  COMPLAINED
+  UNSUBSCRIBED
+  REPLIED
+}
+
+enum SenderStatus {
+  PENDING
+  VERIFIED
+  FAILED
+  DISABLED
+}
+
+model User {
+  id               String            @id
+  email            String            @unique
+  name             String?
+  image            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  memberships      WorkspaceMember[]
+  createdImports   ContactImport[]
+  createdTemplates Template[]
+  templateVersions TemplateVersion[]
+  createdSegments  Segment[]
+  createdCampaigns Campaign[]
+  auditLogs        AuditLog[]
+}
+
+model Workspace {
+  id                           String            @id @default(cuid())
+  name                         String
+  slug                         String            @unique
+  physicalPostalAddress        String?           @db.Text
+  requireLawfulBasisBeforeSend Boolean           @default(true)
+  defaultRegionProfile         RegionProfile     @default(OTHER)
+  createdAt                    DateTime          @default(now())
+  updatedAt                    DateTime          @updatedAt
+  members                      WorkspaceMember[]
+  companies                    Company[]
+  contacts                     Contact[]
+  contactImports               ContactImport[]
+  senderIdentities             SenderIdentity[]
+  templates                    Template[]
+  segments                     Segment[]
+  campaigns                    Campaign[]
+  outboundEmails               OutboundEmail[]
+  emailEvents                  EmailEvent[]
+  suppressionEntries           SuppressionEntry[]
+  unsubscribeTokens            UnsubscribeToken[]
+  auditLogs                    AuditLog[]
+  webhookEvents                WebhookEvent[]
+}
+
+model WorkspaceMember {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        UserRole
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@index([workspaceId, role])
+}
+
+model Company {
+  id            String    @id @default(cuid())
+  workspaceId   String
+  name          String
+  domain        String?
+  website       String?
+  industry      String?
+  employeeRange String?
+  country       String?
+  region        String?
+  city          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  contacts      Contact[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, domain])
+  @@index([workspaceId, country])
+  @@index([workspaceId, region])
+  @@index([workspaceId, city])
+}
+
+model Contact {
+  id                String         @id @default(cuid())
+  workspaceId       String
+  companyId         String?
+  firstName         String?
+  lastName          String?
+  fullName          String         @default("")
+  jobTitle          String?
+  email             String
+  contactType       ContactType
+  sourceType        SourceType
+  sourceUrl         String?        @db.Text
+  sourceNote        String?        @db.Text
+  lawfulBasis       LawfulBasis    @default(NOT_SET)
+  consentStatus     ConsentStatus  @default(UNKNOWN)
+  outreachStatus    OutreachStatus @default(ACTIVE)
+  regionProfile     RegionProfile  @default(OTHER)
+  tags              String[]       @default([])
+  lastContactedAt   DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  workspace         Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  company           Company?       @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  recipients        CampaignRecipient[]
+  outboundEmails    OutboundEmail[]
+  emailEvents       EmailEvent[]
+  unsubscribeTokens UnsubscribeToken[]
+
+  @@unique([workspaceId, email])
+  @@index([workspaceId, outreachStatus])
+  @@index([workspaceId, regionProfile])
+  @@index([workspaceId, lawfulBasis])
+  @@index([workspaceId, consentStatus])
+  @@index([workspaceId, updatedAt])
+}
+
+model ContactImport {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  fileName        String
+  totalRows       Int
+  importedRows    Int
+  skippedRows     Int
+  duplicateRows   Int
+  status          String
+  createdByUserId String
+  createdAt       DateTime  @default(now())
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  createdByUser   User      @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, status])
+}
+
+model SenderIdentity {
+  id                 String       @id @default(cuid())
+  workspaceId        String
+  fromName           String
+  fromEmail          String
+  replyToEmail       String?
+  domain             String
+  status             SenderStatus @default(PENDING)
+  dkimStatus         String?
+  spfStatus          String?
+  dmarcStatus        String?
+  provider           String
+  providerExternalId String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  workspace          Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  campaigns          Campaign[]
+  outboundEmails     OutboundEmail[]
+
+  @@index([workspaceId, domain, status])
+}
+
+model Template {
+  id              String         @id @default(cuid())
+  workspaceId     String
+  name            String
+  subject         String
+  previewText     String?
+  htmlContent     String         @db.Text
+  textContent     String         @db.Text
+  status          TemplateStatus @default(DRAFT)
+  createdByUserId String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  createdByUser   User           @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  versions        TemplateVersion[]
+  campaigns       Campaign[]
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, updatedAt])
+}
+
+model TemplateVersion {
+  id              String   @id @default(cuid())
+  templateId      String
+  versionNumber   Int
+  subject         String
+  previewText     String?
+  htmlContent     String   @db.Text
+  textContent     String   @db.Text
+  createdByUserId String
+  createdAt       DateTime @default(now())
+  template        Template @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  createdByUser   User     @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  @@unique([templateId, versionNumber])
+  @@index([templateId, createdAt])
+}
+
+model Segment {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  name              String
+  filterJson        Json
+  contactCountCache Int      @default(0)
+  createdByUserId   String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  workspace         Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  createdByUser     User      @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  campaigns         Campaign[]
+
+  @@index([workspaceId, updatedAt])
+}
+
+model Campaign {
+  id                  String         @id @default(cuid())
+  workspaceId         String
+  name                String
+  senderIdentityId    String
+  templateId          String
+  segmentId           String?
+  subjectOverride     String?
+  previewTextOverride String?
+  htmlFooter          String         @db.Text
+  textFooter          String         @db.Text
+  status              CampaignStatus @default(DRAFT)
+  scheduledAt         DateTime?
+  startedAt           DateTime?
+  completedAt         DateTime?
+  maxPerMinute        Int            @default(20)
+  maxPerHour          Int            @default(200)
+  maxPerDay           Int            @default(1000)
+  eligibleRecipients  Int            @default(0)
+  blockedRecipients   Int            @default(0)
+  createdByUserId     String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  workspace           Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  senderIdentity      SenderIdentity @relation(fields: [senderIdentityId], references: [id], onDelete: Restrict)
+  template            Template       @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  segment             Segment?       @relation(fields: [segmentId], references: [id], onDelete: SetNull)
+  createdByUser       User           @relation(fields: [createdByUserId], references: [id], onDelete: Restrict)
+  recipients          CampaignRecipient[]
+  outboundEmails      OutboundEmail[]
+  emailEvents         EmailEvent[]
+
+  @@index([workspaceId, status, updatedAt])
+  @@index([workspaceId, scheduledAt])
+}
+
+model CampaignRecipient {
+  id                  String   @id @default(cuid())
+  campaignId          String
+  contactId           String
+  email               String
+  status              String
+  blockedReason       String?  @db.Text
+  personalizationJson Json?
+  lastEventAt         DateTime?
+  campaign            Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  contact             Contact  @relation(fields: [contactId], references: [id], onDelete: Restrict)
+
+  @@unique([campaignId, contactId])
+  @@index([campaignId, contactId, status])
+}
+
+model OutboundEmail {
+  id                 String         @id @default(cuid())
+  workspaceId        String
+  campaignId         String?
+  recipientContactId String?
+  senderIdentityId   String
+  toEmail            String
+  subject            String
+  providerMessageId  String?
+  status             String
+  queuedAt           DateTime?
+  sentAt             DateTime?
+  deliveredAt        DateTime?
+  failedAt           DateTime?
+  createdAt          DateTime       @default(now())
+  workspace          Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  campaign           Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  recipientContact   Contact?       @relation(fields: [recipientContactId], references: [id], onDelete: SetNull)
+  senderIdentity     SenderIdentity @relation(fields: [senderIdentityId], references: [id], onDelete: Restrict)
+  emailEvents        EmailEvent[]
+
+  @@index([workspaceId, campaignId, toEmail])
+  @@index([providerMessageId])
+}
+
+model EmailEvent {
+  id              String         @id @default(cuid())
+  workspaceId     String
+  outboundEmailId String
+  campaignId      String?
+  contactId       String?
+  eventType       EmailEventType
+  providerEventId String?
+  metadata        Json?
+  occurredAt      DateTime       @default(now())
+  workspace       Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  outboundEmail   OutboundEmail  @relation(fields: [outboundEmailId], references: [id], onDelete: Restrict)
+  campaign        Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  contact         Contact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, outboundEmailId, eventType])
+  @@index([workspaceId, occurredAt])
+}
+
+model SuppressionEntry {
+  id          String    @id @default(cuid())
+  workspaceId String
+  email       String
+  reason      String
+  source      String
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+
+  @@unique([workspaceId, email])
+  @@index([workspaceId, createdAt])
+}
+
+model UnsubscribeToken {
+  id          String    @id @default(cuid())
+  workspaceId String
+  contactId   String
+  token       String    @unique
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  contact     Contact   @relation(fields: [contactId], references: [id], onDelete: Restrict)
+
+  @@index([workspaceId, contactId])
+}
+
+model AuditLog {
+  id          String    @id @default(cuid())
+  workspaceId String
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Restrict)
+  actorUser   User?     @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, entityType, entityId, createdAt])
+}
+
+model WebhookEvent {
+  id          String     @id @default(cuid())
+  workspaceId String?
+  provider    String
+  eventType   String
+  rawPayload  Json
+  processed   Boolean    @default(false)
+  processedAt DateTime?
+  createdAt   DateTime   @default(now())
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([provider, eventType, createdAt])
+  @@index([workspaceId, processed])
+}
