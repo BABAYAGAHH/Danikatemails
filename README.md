@@ -48,6 +48,10 @@ DEFAULT_FROM_EMAIL=hello@regionreach.dev
 DEFAULT_FROM_NAME=RegionReach
 ```
 
+- `DATABASE_URL` is required at runtime.
+- `DIRECT_URL` is recommended for Prisma migrations and can usually be the direct, non-pooled Postgres connection.
+- On Vercel/runtime builds, missing `DIRECT_URL` will no longer block the app from compiling.
+
 ## Database Setup
 
 Generate the client, apply the initial migration, and load the demo workspace:
