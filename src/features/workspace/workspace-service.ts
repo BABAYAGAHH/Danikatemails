@@ -16,6 +16,18 @@ export class WorkspaceService {
     });
   }
 
+  static async getMembershipForUser(userId: string, workspaceId: string) {
+    return prisma.workspaceMember.findFirst({
+      where: {
+        userId,
+        workspaceId
+      },
+      include: {
+        workspace: true
+      }
+    });
+  }
+
   static async createWorkspace(userId: string, payload: unknown) {
     const data = workspaceCreateSchema.parse(payload);
 

@@ -26,6 +26,10 @@ export const workspaceSettingsSchema = z.object({
   defaultRegionProfile: z.nativeEnum(RegionProfile)
 });
 
+export const workspaceSwitchSchema = z.object({
+  workspaceId: z.string().min(1)
+});
+
 export const contactSchema = z.object({
   companyName: z.string().min(1).max(160),
   domain: z.string().max(255).optional().or(z.literal("")),

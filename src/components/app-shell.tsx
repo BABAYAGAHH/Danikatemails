@@ -1,7 +1,9 @@
 import type { Route } from "next";
 import Link from "next/link";
+import { UserRole } from "@prisma/client";
 import { BarChart3, BookCopy, FileClock, LayoutDashboard, MailCheck, Map, Settings2, Shield, ShieldOff, Users } from "lucide-react";
 import { LogoutButton } from "@/features/auth/logout-button";
+import { WorkspaceSwitcher } from "@/features/workspace/workspace-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
@@ -24,14 +26,23 @@ const navigation: Array<{
 ];
 
 export function AppShell({
+  currentWorkspaceId,
   workspaceName,
   workspaceSlug,
+  workspaces,
   userName,
   userEmail,
   children
 }: {
+  currentWorkspaceId: string;
   workspaceName: string;
   workspaceSlug: string;
+  workspaces: Array<{
+    workspaceId: string;
+    name: string;
+    slug: string;
+    role: UserRole;
+  }>;
   userName?: string | null;
   userEmail: string;
   children: React.ReactNode;
@@ -54,6 +65,8 @@ export function AppShell({
                 </Badge>
               </div>
             </div>
+
+            <WorkspaceSwitcher currentWorkspaceId={currentWorkspaceId} workspaces={workspaces} />
 
             <nav className="space-y-2">
               {navigation.map((item) => {
@@ -98,6 +111,9 @@ export function AppShell({
               <LogoutButton />
             </div>
           </header>
+          <div className="mb-6 lg:hidden">
+            <WorkspaceSwitcher currentWorkspaceId={currentWorkspaceId} workspaces={workspaces} />
+          </div>
           {children}
         </div>
       </div>

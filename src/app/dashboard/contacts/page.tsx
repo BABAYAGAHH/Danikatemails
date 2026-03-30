@@ -1,12 +1,20 @@
+import { UserRole } from "@prisma/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { ContactForm } from "@/features/contacts/contact-form";
 import { ContactsTable } from "@/features/contacts/contacts-table";
 import { ContactService } from "@/features/contacts/contact-service";
+import { hasAnyRole } from "@/lib/auth/permissions";
 import { resolveWorkspaceMembership } from "@/lib/auth/workspace";
 
 export default async function ContactsPage() {
-  const { workspace } = await resolveWorkspaceMembership();
+  const { workspace, membership } = await resolveWorkspaceMembership();
   const contacts = await ContactService.list(workspace.id);
+  const canManageContacts = hasAnyRole(membership.role, [
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MARKETER
+  ]);
 
   return (
     <div className="space-y-8">
@@ -29,7 +37,21 @@ export default async function ContactsPage() {
             outreachStatus: contact.outreachStatus
           }))}
         />
-        <ContactForm />
+        {canManageContacts ? (
+          <ContactForm />
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Read-only access</CardTitle>
+              <CardDescription>
+                Viewers can review contacts, but only owners, admins, and marketers can add or edit them.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              Contact records stay protected by workspace role checks at both the UI and API layers.
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

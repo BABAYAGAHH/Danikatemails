@@ -19,14 +19,21 @@ export default async function DashboardLayout({
     redirect("/onboarding");
   }
 
-  const { workspace } = await resolveWorkspaceMembership(memberships[0]?.workspaceId);
+  const { workspace } = await resolveWorkspaceMembership();
 
   return (
     <AppShell
+      currentWorkspaceId={workspace.id}
       userEmail={user.email}
       userName={user.name}
       workspaceName={workspace.name}
       workspaceSlug={workspace.slug}
+      workspaces={memberships.map((membership) => ({
+        workspaceId: membership.workspaceId,
+        name: membership.workspace.name,
+        slug: membership.workspace.slug,
+        role: membership.role
+      }))}
     >
       {children}
     </AppShell>
