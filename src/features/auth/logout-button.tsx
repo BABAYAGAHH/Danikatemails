@@ -7,13 +7,19 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getSafeClientRedirectPath } from "@/lib/utils/redirect";
+import { cn } from "@/lib/utils/cn";
 
-export function LogoutButton() {
+export function LogoutButton({
+  className
+}: {
+  className?: string;
+}) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
     <Button
+      className={cn(className)}
       disabled={isSubmitting}
       onClick={async () => {
         try {

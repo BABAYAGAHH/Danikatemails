@@ -1,29 +1,10 @@
-import type { Route } from "next";
-import Link from "next/link";
 import { UserRole } from "@prisma/client";
-import { BarChart3, BookCopy, FileClock, LayoutDashboard, MailCheck, Map, Settings2, Shield, ShieldOff, Users } from "lucide-react";
+import { DashboardNavLinks } from "@/components/layout/dashboard-nav-links";
+import { MobileNavMenu } from "@/components/layout/mobile-nav-menu";
 import { LogoutButton } from "@/features/auth/logout-button";
 import { WorkspaceSwitcher } from "@/features/workspace/workspace-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils/cn";
-
-const navigation: Array<{
-  href: Route;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-}> = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/contacts", label: "Contacts", icon: Users },
-  { href: "/dashboard/imports", label: "Imports", icon: FileClock },
-  { href: "/dashboard/segments", label: "Segments", icon: Map },
-  { href: "/dashboard/templates", label: "Templates", icon: BookCopy },
-  { href: "/dashboard/campaigns", label: "Campaigns", icon: MailCheck },
-  { href: "/dashboard/senders", label: "Senders", icon: Shield },
-  { href: "/dashboard/suppression", label: "Suppression", icon: ShieldOff },
-  { href: "/dashboard/audit", label: "Audit", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings2 }
-];
 
 export function AppShell({
   currentWorkspaceId,
@@ -68,23 +49,7 @@ export function AppShell({
 
             <WorkspaceSwitcher currentWorkspaceId={currentWorkspaceId} workspaces={workspaces} />
 
-            <nav className="space-y-2">
-              {navigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    className={cn(
-                      "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                    )}
-                    href={item.href}
-                    key={item.href}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+            <DashboardNavLinks />
 
             <div className="mt-auto rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
               <div className="mb-3">
@@ -106,14 +71,17 @@ export function AppShell({
               <div className="truncate text-xs text-muted-foreground">{workspaceSlug}</div>
             </div>
             <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <Badge variant="info">{displayName}</Badge>
-              <LogoutButton />
+              <ThemeToggle showLabel={false} />
+              <MobileNavMenu
+                currentWorkspaceId={currentWorkspaceId}
+                userEmail={userEmail}
+                userName={userName}
+                workspaceName={workspaceName}
+                workspaceSlug={workspaceSlug}
+                workspaces={workspaces}
+              />
             </div>
           </header>
-          <div className="mb-6 lg:hidden">
-            <WorkspaceSwitcher currentWorkspaceId={currentWorkspaceId} workspaces={workspaces} />
-          </div>
           {children}
         </div>
       </div>
