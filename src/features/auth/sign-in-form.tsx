@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getSafeClientRedirectPath } from "@/lib/utils/redirect";
 import { signInSchema } from "@/lib/validators/auth";
 
 type FormValues = z.infer<typeof signInSchema>;
@@ -47,7 +48,7 @@ export function SignInForm() {
     },
     onSuccess: (redirectUrl) => {
       toast.success("Welcome back");
-      router.push(redirectUrl as Route);
+      router.push(getSafeClientRedirectPath(redirectUrl, callbackUrl) as Route);
       router.refresh();
     },
     onError: (error: Error) => {

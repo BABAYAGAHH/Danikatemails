@@ -1,11 +1,15 @@
 "use client";
 
 import { LogOut } from "lucide-react";
+import type { Route } from "next";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { getSafeClientRedirectPath } from "@/lib/utils/redirect";
 
 export function LogoutButton() {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   return (
@@ -14,9 +18,12 @@ export function LogoutButton() {
       onClick={async () => {
         try {
           setIsSubmitting(true);
-          await signOut({
-            callbackUrl: "/"
+          const result = await signOut({
+            callbackUrl: "/",
+            redirect: false
           });
+          router.push(getSafeClientRedirectPath(result.url, "/") as Route);
+          router.refresh();
         } finally {
           setIsSubmitting(false);
         }

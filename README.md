@@ -70,6 +70,7 @@ DATABASE_URL=
 DIRECT_URL=
 AUTH_SECRET=
 AUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3000
 EMAIL_PROVIDER=mock
 REDIS_URL=redis://localhost:6379
 APP_URL=http://localhost:3000
