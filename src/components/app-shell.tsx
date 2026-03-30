@@ -33,25 +33,35 @@ export function AppShell({
   return (
     <div className="min-h-screen">
       <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6 lg:px-6">
-        <aside className="hidden w-72 shrink-0 lg:block">
+        <aside className="hidden w-80 shrink-0 lg:block">
           <div className="panel sticky top-6 flex min-h-[calc(100vh-3rem)] flex-col p-5">
-            <div className="mb-8 flex items-center justify-between">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  RegionReach
-                </div>
-                <div className="mt-2 text-xl font-semibold">{workspaceName}</div>
-                <Badge className="mt-3" variant="info">
-                  {workspaceSlug}
-                </Badge>
+            <div className="mb-6 rounded-3xl border border-border/70 bg-gradient-to-br from-primary/14 via-background to-accent/20 p-5">
+              <div className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                RegionReach
               </div>
+              <div className="mt-3 text-xl font-semibold">{workspaceName}</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Compliance-first workspace command center
+              </div>
+              <Badge className="mt-4" variant="info">
+                {workspaceSlug}
+              </Badge>
             </div>
 
             <WorkspaceSwitcher currentWorkspaceId={currentWorkspaceId} workspaces={workspaces} />
 
+            <div className="mb-4 px-2">
+              <div className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                Navigation
+              </div>
+              <div className="mt-2 text-sm text-muted-foreground">
+                Open any workspace area with one click.
+              </div>
+            </div>
+
             <DashboardNavLinks />
 
-            <div className="mt-auto rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
+            <div className="mt-auto rounded-3xl border border-border/70 bg-background/85 px-4 py-4">
               <div className="mb-3">
                 <div className="truncate text-sm font-medium">{displayName}</div>
                 <div className="truncate text-xs text-muted-foreground">{userEmail}</div>

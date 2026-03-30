@@ -25,19 +25,31 @@ export async function setActiveWorkspaceId(workspaceId: string) {
 export async function resolveWorkspaceMembership(explicitWorkspaceId?: string | null) {
   const user = await requireUser();
   const preferredWorkspaceId = explicitWorkspaceId ?? (await getActiveWorkspaceId());
-
-  const membership = await prisma.workspaceMember.findFirst({
-    where: {
-      userId: user.id,
-      ...(preferredWorkspaceId ? { workspaceId: preferredWorkspaceId } : {})
-    },
+  const baseQuery = {
     include: {
       workspace: true
     },
     orderBy: {
       createdAt: "asc"
     }
-  });
+  } as const;
+
+  const membership =
+    (preferredWorkspaceId
+      ? await prisma.workspaceMember.findFirst({
+          ...baseQuery,
+          where: {
+            userId: user.id,
+            workspaceId: preferredWorkspaceId
+          }
+        })
+      : null) ??
+    (await prisma.workspaceMember.findFirst({
+      ...baseQuery,
+      where: {
+        userId: user.id
+      }
+    }));
 
   if (!membership) {
     throw new ApiError(403, "Workspace membership not found");
