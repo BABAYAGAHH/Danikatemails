@@ -4,6 +4,7 @@ import { UserRole } from "@prisma/client";
 import { Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { getCurrentDashboardNavigation } from "@/components/layout/dashboard-navigation";
 import { DashboardNavLinks } from "@/components/layout/dashboard-nav-links";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,8 @@ export function MobileNavMenu({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const displayName = userName?.trim() || userEmail;
+  const currentPage = getCurrentDashboardNavigation(pathname);
+  const CurrentPageIcon = currentPage.icon;
 
   useEffect(() => {
     setOpen(false);
@@ -70,18 +73,21 @@ export function MobileNavMenu({
         <div className="lg:hidden">
           <button
             aria-label="Close navigation menu"
-            className="fixed inset-0 z-40 bg-slate-950/45 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-slate-950/60 backdrop-blur-md"
             onClick={() => setOpen(false)}
             type="button"
           />
-          <div
-            className="fixed inset-y-0 right-0 z-50 flex w-[min(88vw,24rem)] flex-col border-l border-border/70 bg-background/95 px-4 py-4 shadow-2xl"
+          <aside
+            className="fixed inset-0 z-50 flex flex-col bg-background/98 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-2xl"
             id="mobile-dashboard-nav"
           >
-            <div className="mb-4 flex items-start justify-between gap-3 border-b border-border/70 pb-4">
+            <div className="mb-4 flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="truncate text-base font-semibold">{workspaceName}</div>
-                <div className="truncate text-xs text-muted-foreground">{workspaceSlug}</div>
+                <div className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                  RegionReach
+                </div>
+                <div className="mt-2 truncate text-lg font-semibold">{workspaceName}</div>
+                <div className="truncate text-sm text-muted-foreground">{workspaceSlug}</div>
                 <Badge className="mt-3" variant="info">
                   Active workspace
                 </Badge>
@@ -97,22 +103,55 @@ export function MobileNavMenu({
               </Button>
             </div>
 
-            <div className="overflow-y-auto pb-4">
-              <WorkspaceSwitcher currentWorkspaceId={currentWorkspaceId} workspaces={workspaces} />
-              <DashboardNavLinks onNavigate={() => setOpen(false)} />
+            <div className="mb-4 rounded-3xl border border-border/70 bg-gradient-to-br from-primary/10 via-background to-accent/20 p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Current page
+              </div>
+              <div className="mt-3 flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                  <CurrentPageIcon className="h-5 w-5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="text-base font-semibold">{currentPage.label}</div>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    {currentPage.description}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-auto rounded-2xl border border-border/70 bg-background/80 p-4">
+            <div className="flex-1 space-y-4 overflow-y-auto pb-4">
+              {workspaces.length > 1 ? (
+                <WorkspaceSwitcher currentWorkspaceId={currentWorkspaceId} workspaces={workspaces} />
+              ) : (
+                <div className="rounded-3xl border border-border/70 bg-background/70 p-4">
+                  <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Workspace
+                  </div>
+                  <div className="mt-2 text-sm font-medium">{workspaceName}</div>
+                  <div className="mt-1 text-xs text-muted-foreground">{workspaceSlug}</div>
+                </div>
+              )}
+
+              <div className="rounded-3xl border border-border/70 bg-background/75 p-3">
+                <div className="px-2 pb-3 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  Navigation
+                </div>
+                <DashboardNavLinks onNavigate={() => setOpen(false)} variant="mobile" />
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-border/70 bg-background/85 p-4">
               <div className="mb-3">
                 <div className="truncate text-sm font-medium">{displayName}</div>
                 <div className="truncate text-xs text-muted-foreground">{userEmail}</div>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <ThemeToggle showLabel={false} />
+                <ThemeToggle className="shrink-0" showLabel={false} />
                 <LogoutButton className="flex-1" />
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       ) : null}
     </>
