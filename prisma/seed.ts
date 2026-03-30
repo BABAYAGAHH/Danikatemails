@@ -12,6 +12,7 @@ import {
   TemplateStatus,
   UserRole
 } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -54,6 +55,8 @@ function fullName(firstName: string, lastName: string) {
 }
 
 async function main() {
+  const passwordHash = await bcrypt.hash("Demo12345!", 12);
+
   await prisma.emailEvent.deleteMany();
   await prisma.outboundEmail.deleteMany();
   await prisma.campaignRecipient.deleteMany();
@@ -75,8 +78,9 @@ async function main() {
   await prisma.user.create({
     data: {
       id: ownerUserId,
-      email: "owner@regionreach.dev",
-      name: "Demo Owner"
+      email: "demo@regionreach.app",
+      name: "Demo Owner",
+      passwordHash
     }
   });
 
@@ -85,7 +89,7 @@ async function main() {
       id: workspaceId,
       name: "RegionReach Demo",
       slug: "regionreach-demo",
-      physicalPostalAddress: "500 Mission Street, Suite 400, San Francisco, CA 94105, United States",
+      physicalPostalAddress: "14 Marina Road, Lagos, Nigeria",
       requireLawfulBasisBeforeSend: true,
       defaultRegionProfile: RegionProfile.US
     }
@@ -283,9 +287,9 @@ async function main() {
         templateId: templates[0]!.id,
         segmentId: segments[0]!.id,
         htmlFooter:
-          "<p>RegionReach Demo, 500 Mission Street, Suite 400, San Francisco, CA 94105</p><p><a href='{{unsubscribeUrl}}'>Unsubscribe</a></p>",
+          "<p>RegionReach Demo, 14 Marina Road, Lagos, Nigeria</p><p><a href='{{unsubscribeUrl}}'>Unsubscribe</a></p>",
         textFooter:
-          "RegionReach Demo, 500 Mission Street, Suite 400, San Francisco, CA 94105\nUnsubscribe: {{unsubscribeUrl}}",
+          "RegionReach Demo, 14 Marina Road, Lagos, Nigeria\nUnsubscribe: {{unsubscribeUrl}}",
         status: CampaignStatus.COMPLETED,
         startedAt: new Date("2026-03-15T10:00:00.000Z"),
         completedAt: new Date("2026-03-15T13:45:00.000Z"),
@@ -302,9 +306,9 @@ async function main() {
         templateId: templates[1]!.id,
         segmentId: segments[1]!.id,
         htmlFooter:
-          "<p>RegionReach Demo, 500 Mission Street, Suite 400, San Francisco, CA 94105</p><p><a href='{{unsubscribeUrl}}'>Unsubscribe</a></p>",
+          "<p>RegionReach Demo, 14 Marina Road, Lagos, Nigeria</p><p><a href='{{unsubscribeUrl}}'>Unsubscribe</a></p>",
         textFooter:
-          "RegionReach Demo, 500 Mission Street, Suite 400, San Francisco, CA 94105\nUnsubscribe: {{unsubscribeUrl}}",
+          "RegionReach Demo, 14 Marina Road, Lagos, Nigeria\nUnsubscribe: {{unsubscribeUrl}}",
         status: CampaignStatus.RUNNING,
         startedAt: new Date("2026-03-22T09:00:00.000Z"),
         eligibleRecipients: 11,

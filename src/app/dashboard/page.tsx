@@ -1,5 +1,5 @@
 import { LawfulBasis } from "@prisma/client";
-import { AlertTriangle, ArrowRightLeft, Mail, MousePointerClick, Users } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Mail, ShieldCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { MetricCard } from "@/components/metric-card";
 import { PageHeader } from "@/components/page-header";
@@ -25,6 +25,9 @@ export default async function DashboardPage() {
       take: 4
     })
   ]);
+  const verifiedSenders = senderIdentities.filter((sender) => sender.status === "VERIFIED").length;
+  const complianceHealth =
+    missingLawfulBasis > 0 || overview.suppressedContacts > 0 ? "Needs review" : "Healthy";
 
   return (
     <div className="space-y-8">
@@ -37,8 +40,14 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard helper="Public business contacts stored" icon={<Users className="h-4 w-4 text-muted-foreground" />} label="Total contacts" value={overview.totalContacts} />
         <MetricCard helper="Currently running or scheduled" icon={<Mail className="h-4 w-4 text-muted-foreground" />} label="Active campaigns" value={overview.activeCampaigns} />
-        <MetricCard helper={`Delivery rate ${formatRate(overview.delivered === 0 ? 0 : overview.delivered / Math.max(overview.emailsSent, 1))}`} icon={<ArrowRightLeft className="h-4 w-4 text-muted-foreground" />} label="Emails sent" value={overview.emailsSent} />
-        <MetricCard helper={`Bounce rate ${formatRate(overview.bounceRate)}`} icon={<MousePointerClick className="h-4 w-4 text-muted-foreground" />} label="Click rate" value={formatRate(overview.clickRate)} />
+        <MetricCard helper={`${senderIdentities.length} identities configured`} icon={<ShieldCheck className="h-4 w-4 text-muted-foreground" />} label="Verified senders" value={verifiedSenders} />
+        <MetricCard helper={`${overview.eligibleContacts} contacts currently eligible`} icon={<CheckCircle2 className="h-4 w-4 text-muted-foreground" />} label="Compliance status" value={complianceHealth} />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <MetricCard helper="Queued or sent across all campaigns" label="Emails sent" value={overview.emailsSent} />
+        <MetricCard helper={`Delivered ${overview.delivered} emails`} label="Open rate" value={formatRate(overview.openRate)} />
+        <MetricCard helper={`Bounce rate ${formatRate(overview.bounceRate)}`} label="Click rate" value={formatRate(overview.clickRate)} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">

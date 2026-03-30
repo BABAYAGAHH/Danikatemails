@@ -1,44 +1,39 @@
-import { currentUser, auth } from "@clerk/nextjs/server";
+import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
+import { ApiError } from "@/lib/utils/http";
 
-function assertClerkConfigured() {
-  if (!process.env.CLERK_SECRET_KEY || !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-    throw new Error(
-      "Clerk authentication is not configured. Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY."
-    );
+export async function getSession() {
+  return auth();
+}
+
+export async function getOptionalUser() {
+  const session = await getSession();
+
+  if (!session?.user?.id) {
+    return null;
   }
+
+  return prisma.user.findUnique({
+    where: {
+      id: session.user.id
+    },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      image: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  });
 }
 
 export async function requireUser() {
-  assertClerkConfigured();
-  const { userId } = await auth();
+  const user = await getOptionalUser();
 
-  if (!userId) {
-    throw new Error("Unauthorized");
+  if (!user) {
+    throw new ApiError(401, "Unauthorized");
   }
-
-  const clerkUser = await currentUser();
-
-  if (!clerkUser?.primaryEmailAddress?.emailAddress) {
-    throw new Error("Authenticated user is missing a primary email address");
-  }
-
-  const user = await prisma.user.upsert({
-    where: {
-      id: userId
-    },
-    create: {
-      id: userId,
-      email: clerkUser.primaryEmailAddress.emailAddress,
-      name: clerkUser.fullName ?? clerkUser.firstName ?? clerkUser.username,
-      image: clerkUser.imageUrl
-    },
-    update: {
-      email: clerkUser.primaryEmailAddress.emailAddress,
-      name: clerkUser.fullName ?? clerkUser.firstName ?? clerkUser.username,
-      image: clerkUser.imageUrl
-    }
-  });
 
   return user;
 }

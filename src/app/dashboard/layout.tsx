@@ -22,7 +22,12 @@ export default async function DashboardLayout({
   const { workspace } = await resolveWorkspaceMembership(memberships[0]?.workspaceId);
 
   return (
-    <AppShell workspaceName={workspace.name} workspaceSlug={workspace.slug}>
+    <AppShell
+      userEmail={user.email}
+      userName={user.name}
+      workspaceName={workspace.name}
+      workspaceSlug={workspace.slug}
+    >
       {children}
     </AppShell>
   );

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 export class ApiError extends Error {
   constructor(
@@ -39,6 +40,17 @@ export function jsonError(error: unknown) {
         details: error.details
       },
       { status: error.status }
+    );
+  }
+
+  if (error instanceof ZodError) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Validation failed",
+        details: error.flatten()
+      },
+      { status: 400 }
     );
   }
 

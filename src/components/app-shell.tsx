@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
 import { BarChart3, BookCopy, FileClock, LayoutDashboard, MailCheck, Map, Settings2, Shield, ShieldOff, Users } from "lucide-react";
+import { LogoutButton } from "@/features/auth/logout-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
@@ -23,17 +23,21 @@ const navigation: Array<{
   { href: "/dashboard/settings", label: "Settings", icon: Settings2 }
 ];
 
-const hasClerkAuth = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-
 export function AppShell({
   workspaceName,
   workspaceSlug,
+  userName,
+  userEmail,
   children
 }: {
   workspaceName: string;
   workspaceSlug: string;
+  userName?: string | null;
+  userEmail: string;
   children: React.ReactNode;
 }) {
+  const displayName = userName?.trim() || userEmail;
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto flex max-w-[1480px] gap-6 px-4 py-6 lg:px-6">
@@ -69,13 +73,15 @@ export function AppShell({
               })}
             </nav>
 
-            <div className="mt-auto flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-              <ThemeToggle />
-              {hasClerkAuth ? (
-                <UserButton />
-              ) : (
-                <Badge variant="warning">Auth setup needed</Badge>
-              )}
+            <div className="mt-auto rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
+              <div className="mb-3">
+                <div className="truncate text-sm font-medium">{displayName}</div>
+                <div className="truncate text-xs text-muted-foreground">{userEmail}</div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <ThemeToggle />
+                <LogoutButton />
+              </div>
             </div>
           </div>
         </aside>
@@ -84,15 +90,12 @@ export function AppShell({
           <header className="panel mb-6 flex items-center justify-between px-5 py-4 lg:hidden">
             <div>
               <div className="text-sm font-semibold">{workspaceName}</div>
-              <div className="text-xs text-muted-foreground">{workspaceSlug}</div>
+              <div className="truncate text-xs text-muted-foreground">{workspaceSlug}</div>
             </div>
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              {hasClerkAuth ? (
-                <UserButton />
-              ) : (
-                <Badge variant="warning">Auth setup needed</Badge>
-              )}
+              <Badge variant="info">{displayName}</Badge>
+              <LogoutButton />
             </div>
           </header>
           {children}

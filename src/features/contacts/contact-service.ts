@@ -274,6 +274,40 @@ export class ContactService {
     return contact;
   }
 
+  static async delete(workspaceId: string, contactId: string, userId: string) {
+    const contact = await prisma.contact.findFirstOrThrow({
+      where: {
+        id: contactId,
+        workspaceId
+      },
+      select: {
+        id: true,
+        email: true,
+        fullName: true
+      }
+    });
+
+    await prisma.contact.delete({
+      where: {
+        id: contact.id
+      }
+    });
+
+    await AuditService.record({
+      workspaceId,
+      actorUserId: userId,
+      action: "contact.deleted",
+      entityType: "contact",
+      entityId: contact.id,
+      metadata: {
+        email: contact.email,
+        fullName: contact.fullName
+      }
+    });
+
+    return contact;
+  }
+
   static async applyBulkAction(workspaceId: string, userId: string, payload: unknown) {
     const action = bulkContactActionSchema.parse(payload);
     const contacts = await prisma.contact.findMany({

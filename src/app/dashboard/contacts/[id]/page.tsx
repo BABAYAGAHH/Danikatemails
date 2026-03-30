@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
+import { DeleteContactButton } from "@/features/contacts/delete-contact-button";
 import { ContactService } from "@/features/contacts/contact-service";
 import { resolveWorkspaceMembership } from "@/lib/auth/workspace";
 import { formatRelative } from "@/lib/utils/format";
@@ -28,7 +29,10 @@ export default async function ContactDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-[0.36fr_0.64fr]">
         <div className="panel p-6">
-          <h2 className="text-lg font-semibold">Profile</h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-lg font-semibold">Profile</h2>
+            <DeleteContactButton contactId={contact.id} contactName={contact.fullName || contact.email} />
+          </div>
           <dl className="mt-5 space-y-4 text-sm">
             <div>
               <dt className="text-muted-foreground">Email</dt>

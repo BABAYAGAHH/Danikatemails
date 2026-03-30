@@ -57,3 +57,23 @@ export async function PUT(request: NextRequest) {
     return jsonError(error);
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { workspace, user } = await requireWorkspaceRole([
+      UserRole.OWNER,
+      UserRole.ADMIN
+    ]);
+    const searchParams = new URL(request.url).searchParams;
+    const contactId = searchParams.get("id");
+
+    if (!contactId) {
+      throw new Error("Contact id is required");
+    }
+
+    const deleted = await ContactService.delete(workspace.id, contactId, user.id);
+    return jsonOk(deleted);
+  } catch (error) {
+    return jsonError(error);
+  }
+}

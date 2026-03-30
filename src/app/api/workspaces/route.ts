@@ -2,6 +2,7 @@ import { UserRole } from "@prisma/client";
 import { NextRequest } from "next/server";
 import { WorkspaceService } from "@/features/workspace/workspace-service";
 import { requireUser } from "@/lib/auth/session";
+import { setActiveWorkspaceId } from "@/lib/auth/workspace";
 import { requireWorkspaceRole } from "@/lib/auth/workspace";
 import { jsonError, jsonOk, parseJsonBody } from "@/lib/utils/http";
 
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest) {
       user.id,
       await parseJsonBody(request, (value) => value)
     );
+    await setActiveWorkspaceId(workspace.id);
     return jsonOk(workspace, { status: 201 });
   } catch (error) {
     return jsonError(error);

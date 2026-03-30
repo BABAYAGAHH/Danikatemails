@@ -1,7 +1,9 @@
 import { Prisma, UserRole } from "@prisma/client";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
+import { assertWorkspaceRole as assertAllowedWorkspaceRole } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
+import { ApiError } from "@/lib/utils/http";
 
 const ACTIVE_WORKSPACE_COOKIE = "rr_workspace_id";
 
@@ -38,7 +40,7 @@ export async function resolveWorkspaceMembership(explicitWorkspaceId?: string | 
   });
 
   if (!membership) {
-    throw new Error("Workspace membership not found");
+    throw new ApiError(403, "Workspace membership not found");
   }
 
   return {
@@ -53,10 +55,7 @@ export async function requireWorkspaceRole(
   explicitWorkspaceId?: string | null
 ) {
   const context = await resolveWorkspaceMembership(explicitWorkspaceId);
-
-  if (!roles.includes(context.membership.role)) {
-    throw new Error("Forbidden");
-  }
+  assertAllowedWorkspaceRole(context.membership.role, roles);
 
   return context;
 }
